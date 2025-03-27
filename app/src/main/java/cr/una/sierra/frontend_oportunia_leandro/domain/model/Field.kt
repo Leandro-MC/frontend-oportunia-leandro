@@ -1,4 +1,6 @@
 package cr.una.sierra.frontend_oportunia_leandro.domain.model
 
-class Applicant {
-}
+data class Field(
+    val id: Long,
+    val name: String
+)

@@ -1,4 +1,6 @@
 package cr.una.sierra.frontend_oportunia_leandro.data.datasource.model
 
-class ApplicantDto {
-}
+data class FieldDto(
+    val id: Long,
+    val name: String
+)
