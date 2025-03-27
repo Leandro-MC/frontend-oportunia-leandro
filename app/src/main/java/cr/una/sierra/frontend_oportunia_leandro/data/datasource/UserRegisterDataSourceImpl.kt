@@ -5,7 +5,7 @@ import cr.una.sierra.frontend_oportunia_leandro.data.datasource.providers.UserRe
 import cr.una.sierra.frontend_oportunia_leandro.data.mapper.UserRegisterMapper
 
 class UserRegisterDataSourceImpl(
-    private val userRegisterMapper: UserRegisterMapper
+    private val userRegisterMapper: UserRegisterMapper,
 ) : UserRegisterDataSource {
 
     override suspend fun getUserRegisterByEmail(email: String): UserRegisterDto? =
@@ -14,4 +14,5 @@ class UserRegisterDataSourceImpl(
     override suspend fun insertUserRegister(userRegisterDto: UserRegisterDto) {
         UserRegisterProvider.addUserRegister(userRegisterMapper.mapToDomain(userRegisterDto))
     }
+
 }

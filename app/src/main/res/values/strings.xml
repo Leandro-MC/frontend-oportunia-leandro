@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">frontend-oportunia-sierra</string>
+    <string name="app_title">OportunIA</string>
+    <string name="menu_home">Inicio</string>
+    <string name="menu_notifications">Notificaciones</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="no_job_offers_available">No hay ofertas de trabajo disponibles</string>
 </resources>

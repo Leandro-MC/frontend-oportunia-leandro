@@ -3,6 +3,7 @@ package cr.una.sierra.frontend_oportunia_leandro.data.datasource.providers
 import cr.una.sierra.frontend_oportunia_leandro.domain.model.ApplicantRegister
 import cr.una.sierra.frontend_oportunia_leandro.domain.model.CompanyRegister
 import cr.una.sierra.frontend_oportunia_leandro.domain.model.Field
+import cr.una.sierra.frontend_oportunia_leandro.domain.model.UserLogin
 import cr.una.sierra.frontend_oportunia_leandro.domain.model.UserRegister
 import java.time.LocalDate
 
@@ -77,6 +78,10 @@ class UserRegisterProvider {
                 throw IllegalArgumentException("User with email ${userRegister.email} already exists")
             }
             users.add(userRegister)
+        }
+
+        fun loginUser(userLogin: UserLogin): Boolean {
+            return users.any { it.email == userLogin.email && it.password == userLogin.password }
         }
     }
 }
