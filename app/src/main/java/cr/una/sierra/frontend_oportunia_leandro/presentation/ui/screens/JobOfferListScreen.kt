@@ -26,21 +26,19 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.viewmodel.JobOfferState
 import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.viewmodel.JobOfferViewModel
 import cr.una.sierra.frontend_oportunia_leandro.R
 import cr.una.sierra.frontend_oportunia_leandro.domain.model.JobOffer
-import cr.una.sierra.frontend_oportunia_leandro.presentation.navigation.NavRoutes
 import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.components.JobOfferItem
 
 @Composable
 fun JobOfferListScreen(
-    navController: NavController,
     jobOfferViewModel: JobOfferViewModel,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    onJobOfferClick: (Long) -> Unit, // Callback para navegar al detalle de la oferta
+    onRefresh: () -> Unit // Callback para actualizar la lista
 ) {
-
     val jobOfferList by jobOfferViewModel.jobOfferList.collectAsState()
     val jobOfferState by jobOfferViewModel.jobOffer.collectAsState()
 
@@ -58,7 +56,7 @@ fun JobOfferListScreen(
         refreshing = isRefreshing,
         onRefresh = {
             isRefreshing = true
-            jobOfferViewModel.findAllJobOffes()
+            onRefresh() // Se delega la lógica de actualización
         }
     )
 
@@ -70,24 +68,20 @@ fun JobOfferListScreen(
             .pullRefresh(pullRefreshState)
     ) {
         when {
-            // Show loading indicator when list is empty and loading
             jobOfferList.isEmpty() && jobOfferState is JobOfferState.Loading -> {
                 LoadingContent()
             }
-            // Show empty state message
             jobOfferList.isEmpty() -> {
                 EmptyContent()
             }
-            // Show the jobOffer list
             else -> {
                 JobOfferListContent(
                     jobOfferList = jobOfferList,
-                    navController = navController
+                    onJobOfferClick = onJobOfferClick // Se pasa el callback
                 )
             }
         }
 
-        @OptIn(androidx.compose.material.ExperimentalMaterialApi::class)
         PullRefreshIndicator(
             refreshing = isRefreshing,
             state = pullRefreshState,
@@ -137,7 +131,7 @@ private fun EmptyContent() {
 @Composable
 private fun JobOfferListContent(
     jobOfferList: List<JobOffer>,
-    navController: NavController
+    onJobOfferClick: (Long) -> Unit // Se recibe callback para navegar
 ) {
     LazyColumn(
         modifier = Modifier
@@ -155,7 +149,7 @@ private fun JobOfferListContent(
                 jobOffer = jobOffer,
                 onClick = {
                     jobOffer.id?.let { id ->
-                        //navController.navigate(NavRoutes.JobOfferDetail.createRoute(id))
+                        onJobOfferClick(id) // Se delega la navegación
                     }
                 }
             )

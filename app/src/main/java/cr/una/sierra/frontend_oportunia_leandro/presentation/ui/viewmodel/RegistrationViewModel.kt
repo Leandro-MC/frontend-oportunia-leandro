@@ -4,12 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cr.una.sierra.frontend_oportunia_leandro.domain.model.ApplicantRegister
 import cr.una.sierra.frontend_oportunia_leandro.domain.model.CompanyRegister
-import cr.una.sierra.frontend_oportunia_leandro.domain.model.Field
 import cr.una.sierra.frontend_oportunia_leandro.domain.repository.UserRegisterRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 // Enum to differentiate user types
 enum class UserType {
@@ -58,22 +56,11 @@ class RegistrationViewModel(
     val registrationState: StateFlow<RegistrationState> = _registrationState
 
     fun registerCompany(
-        email: String,
-        password: String,
-        name: String,
-        profileImage: String?,
-        sector: String
+        companyRegister: CompanyRegister
     ) {
         viewModelScope.launch {
             _registrationState.value = RegistrationState.Loading
             try {
-                val companyRegister = CompanyRegister(
-                    email = email,
-                    password = password,
-                    name = name,
-                    profileImage = profileImage,
-                    fields = listOf(Field(0, sector))  // Cambiar esto
-                )
                 userRegisterRepository.insertUserRegister(companyRegister)
                 _registrationState.value = RegistrationState.Success
             } catch (e: Exception) {
@@ -85,26 +72,11 @@ class RegistrationViewModel(
     }
 
     fun registerApplicant(
-        email: String,
-        password: String,
-        name: String,
-        profileImage: String?,
-        lastName: String,
-        phone: String,
-        birthday: String?
+        applicantRegister: ApplicantRegister
     ) {
         viewModelScope.launch {
             _registrationState.value = RegistrationState.Loading
             try {
-                val applicantRegister = ApplicantRegister(
-                    email = email,
-                    password = password,
-                    name = name,
-                    profileImage = profileImage,
-                    lastName = lastName,
-                    phone = phone,
-                    birthday = birthday?.let { LocalDate.parse(it) }
-                )
                 userRegisterRepository.insertUserRegister(applicantRegister)
                 _registrationState.value = RegistrationState.Success
             } catch (e: Exception) {
@@ -113,5 +85,9 @@ class RegistrationViewModel(
                 )
             }
         }
+    }
+
+    fun registerLogout() {
+        _registrationState.value = RegistrationState.Idle
     }
 }

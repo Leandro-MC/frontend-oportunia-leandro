@@ -16,9 +16,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
-import cr.una.sierra.frontend_oportunia_leandro.presentation.navigation.NavRoutes
+import cr.una.sierra.frontend_oportunia_leandro.domain.model.ApplicantRegister
+import cr.una.sierra.frontend_oportunia_leandro.domain.model.CompanyRegister
+import cr.una.sierra.frontend_oportunia_leandro.domain.model.Field
+import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.viewmodel.RegistrationState
+import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.viewmodel.RegistrationViewModel
+import java.time.LocalDate
 
 /**
  * Un único Composable que maneja:
@@ -28,55 +34,64 @@ import cr.una.sierra.frontend_oportunia_leandro.presentation.navigation.NavRoute
  */
 @Composable
 fun RegistrationScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: RegistrationViewModel,
+    onRegistrationSuccess: () -> Unit,
 ) {
-    // Tipo seleccionado: "Postulante" (true) o "Empresa" (false)
     var isPostulante by remember { mutableStateOf(true) }
-    // Paso actual: 1 => (Correo, Contraseña), 2 => (Datos específicos)
     var currentStep by remember { mutableStateOf(1) }
 
-    // Paso 1: Estados
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    // Paso 2: Estados de Postulante
     var name by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var birthDate by remember { mutableStateOf("") }
 
-    // Paso 2: Estados de Empresa
     var companyName by remember { mutableStateOf("") }
     var sector by remember { mutableStateOf("") }
     var contact by remember { mutableStateOf("") }
 
-    // Surface con el fondo oscuro (definido en tu tema)
+    val registrationState by viewModel.registrationState.collectAsState()
+
+    // Si el registro es exitoso, navegar a Login
+    LaunchedEffect(registrationState) {
+        when (registrationState) {
+            is RegistrationState.Success -> {
+                onRegistrationSuccess()
+            }
+            is RegistrationState.Error -> {
+                // Manejar el error de registro
+                val errorMessage = (registrationState as RegistrationState.Error).message
+                // Mostrar un mensaje de error o manejarlo de otra manera
+            }
+            else -> {}
+        }
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        // Contenedor principal
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp)
         ) {
-            // Encabezado con flecha en la esquina superior derecha
-            // Si estamos en step 1, la flecha regresa al Login
-            // Si estamos en step 2, la flecha regresa al step 1
             Box(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 IconButton(
                     onClick = {
                         if (currentStep == 1) {
-                            navController.popBackStack() // Volver al Login
+                            navController.popBackStack()
                         } else {
-                            currentStep = 1 // Regresar al paso 1
+                            currentStep = 1
                         }
                     },
-                    modifier = Modifier.align(Alignment.CenterEnd)
+                    modifier = Modifier.align(Alignment.CenterStart)
                 ) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
@@ -89,11 +104,6 @@ fun RegistrationScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             if (currentStep == 1) {
-                // =======================
-                // PASO 1: Selección de tipo + Correo + Contraseñas
-                // =======================
-
-                // Título principal
                 Text(
                     text = "Registrarse",
                     style = MaterialTheme.typography.displayMedium,
@@ -102,7 +112,6 @@ fun RegistrationScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Toggle (Tabs) para Postulante o Empresa
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
@@ -142,7 +151,6 @@ fun RegistrationScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Campos de Correo, Contraseña, Confirmar Contraseña
                 RegistrationOutlinedTextField(
                     label = "Correo electrónico",
                     value = email,
@@ -165,54 +173,24 @@ fun RegistrationScreen(
                     isPassword = true
                 )
 
-                // Texto aclaratorio, por ejemplo:
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Debe tener al menos 8 dígitos, combinando valores alfanuméricos.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Botón CONTINUAR
                 Button(
-                    onClick = {
-                        // Podrías validar email, password, etc. antes de avanzar
-                        currentStep = 2
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    onClick = { currentStep = 2 },
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
                 ) {
                     Text("CONTINUAR")
                 }
             } else {
-                // =======================
-                // PASO 2: Campos específicos
-                // =======================
-                if (isPostulante) {
-                    // Encabezado en rojo: "Registro de Postulante"
-                    Text(
-                        text = "Registro de Postulante",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                } else {
-                    Text(
-                        text = "Registro de Empresa",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+                Text(
+                    text = if (isPostulante) "Registro de Postulante" else "Registro de Empresa",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Ícono central con + (simulamos)
                 UserCircleIcon()
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -270,22 +248,31 @@ fun RegistrationScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Botón CONFIRMAR
                 Button(
                     onClick = {
-                        // Aquí harías la lógica final de registro
-                        // Podrías navegar a otra pantalla o volver a login
-                        navController.navigate(NavRoutes.Login.ROUTE) {
-                            popUpTo(NavRoutes.Registration.ROUTE) { inclusive = true }
+                        if (isPostulante) {
+                            val applicantRegister = ApplicantRegister(
+                                email = email,
+                                password = password,
+                                name = name,
+                                profileImage = null,
+                                lastName = lastName,
+                                phone = phone,
+                                birthday = LocalDate.now()
+                            )
+                            viewModel.registerApplicant(applicantRegister)
+                        } else {
+                            val companyRegister = CompanyRegister(
+                                email = email,
+                                password = password,
+                                name = companyName,
+                                profileImage = null,
+                                fields = listOf(Field(0, sector)) // Cambiar esto
+                            )
+                            viewModel.registerCompany(companyRegister)
                         }
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
                 ) {
                     Text("CONFIRMAR")
                 }
@@ -293,6 +280,7 @@ fun RegistrationScreen(
         }
     }
 }
+
 
 /**
  * Campo reutilizable para texto y contraseñas.
@@ -309,15 +297,7 @@ fun RegistrationOutlinedTextField(
         onValueChange = onValueChange,
         label = { Text(label) },
         visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None,
-        modifier = Modifier.fillMaxWidth(),
-//        colors = TextFieldDefaults.outlinedTextFieldColors(
-//            textColor = MaterialTheme.colorScheme.onSurface,
-//            cursorColor = MaterialTheme.colorScheme.primary,
-//            focusedBorderColor = MaterialTheme.colorScheme.primary,
-//            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-//            focusedLabelColor = MaterialTheme.colorScheme.primary,
-//            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-//        )
+        modifier = Modifier.fillMaxWidth()
     )
 }
 
@@ -340,6 +320,9 @@ fun UserCircleIcon() {
             tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
             modifier = Modifier.size(48.dp)
         )
-        // Aquí podrías superponer un ícono de '+', etc.
+        // Aquí superponer un ícono de '+', etc.
     }
 }
+
+
+

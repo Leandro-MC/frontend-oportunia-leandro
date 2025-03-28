@@ -1,122 +1,122 @@
 package cr.una.sierra.frontend_oportunia_leandro.presentation.navigation
 
+import MainScreen
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
+
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.NavGraph.Companion.findStartDestination
+
 import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.screens.JobOfferDetailScreen
-import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.screens.JobOfferListScreen
 import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.screens.LoginScreen
-import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.screens.NoificationsScreen
+import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.screens.RegistrationScreen
 import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.viewmodel.JobOfferViewModel
 import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.viewmodel.LoginViewModel
-
+import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.viewmodel.RegistrationViewModel
 
 
 @Composable
 fun NavGraph(
-    navController: NavHostController,
     jobOfferViewModel: JobOfferViewModel,
-    paddingValues: PaddingValues
+    loginViewModel: LoginViewModel,
+    registrationViewModel: RegistrationViewModel,
+    navController: NavHostController = rememberNavController()
 ) {
     NavHost(
         navController = navController,
-        startDestination = NavRoutes.Login.ROUTE) {
-        // JobOfferList screen
-        composable(NavRoutes.Login.ROUTE) {
-            JobOfferListScreen(
+        startDestination = "auth_graph"
+    ) {
+        // Rutas del módulo de autenticación
+        authNavGraph(navController, loginViewModel, registrationViewModel)
+
+        // Rutas del módulo de ofertas (se mantiene sin cambios)
+        jobOfferNavGraph(navController, jobOfferViewModel)
+
+        // Pantalla principal que contiene el menú inferior
+        composable(NavRoutes.MainScreen.ROUTE) {
+            MainScreen(
                 navController = navController,
                 jobOfferViewModel = jobOfferViewModel,
-                paddingValues = paddingValues
+                onLogout = {
+                    loginViewModel.logout()
+                    registrationViewModel.registerLogout()
+                    // Navegar al flujo de autenticación: puedes usar el navController global o un navController especial para este propósito
+                    navController.navigate("auth_graph") {
+                        popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                    }
+                }
             )
         }
+    }
+}
 
-        // JobOfferDetail screen
+fun NavGraphBuilder.authNavGraph(
+    navController: NavHostController,
+    loginViewModel: LoginViewModel,
+    registrationViewModel: RegistrationViewModel
+) {
+    navigation(
+        startDestination = NavRoutes.Login.ROUTE,
+        route = "auth_graph"
+    ) {
+        composable(NavRoutes.Login.ROUTE) {
+            LoginScreen(
+                viewModel = loginViewModel,
+                onNavigateToRegistration = {
+                    navController.navigate(NavRoutes.Registration.ROUTE)
+                },
+                onLoginSuccess = {
+                    // Navegar a la pantalla principal con menú inferior
+                    navController.navigate(NavRoutes.MainScreen.ROUTE) {
+                        popUpTo(NavRoutes.Login.ROUTE) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(NavRoutes.Registration.ROUTE) {
+            RegistrationScreen(
+                navController = navController,
+                viewModel = registrationViewModel,
+                onRegistrationSuccess = {
+                    navController.navigate(NavRoutes.MainScreen.ROUTE) {
+                        popUpTo(NavRoutes.Login.ROUTE) { inclusive = true }
+                    }
+                }
+            )
+        }
+    }
+}
+
+fun NavGraphBuilder.jobOfferNavGraph(
+    navController: NavHostController,
+    jobOfferViewModel: JobOfferViewModel
+) {
+    navigation(
+        startDestination = NavRoutes.JobOfferList.ROUTE,
+        route = "job_offer_graph"
+    ) {
         composable(
             route = NavRoutes.JobOfferDetail.ROUTE,
             arguments = listOf(navArgument(NavRoutes.JobOfferDetail.ARG_JOB_OFFER_ID) {
                 type = NavType.LongType
             })
         ) { backStackEntry ->
-            val jobOfferId = backStackEntry.arguments?.getLong(NavRoutes.JobOfferDetail.ARG_JOB_OFFER_ID) ?: 0L
+            val jobOfferId =
+                backStackEntry.arguments?.getLong(NavRoutes.JobOfferDetail.ARG_JOB_OFFER_ID)
+                    ?: 0L
             JobOfferDetailScreen(
                 jobOfferId = jobOfferId,
                 jobOfferViewModel = jobOfferViewModel,
                 navController = navController,
-                paddingValues = paddingValues
+                paddingValues = PaddingValues()
             )
         }
-
-        // Settings screen
-        composable(NavRoutes.Notifications.ROUTE) {
-            NoificationsScreen(navController, paddingValues)
-        }
-
-
     }
 }
-
-
-// ============================================================================================
-
-//@Composable
-//fun NavGraph(
-//    navController: NavHostController,
-//    loginViewModel: LoginViewModel,
-//    jobOfferViewModel: JobOfferViewModel,
-//    modifier: Modifier = Modifier
-//) {
-//    // Collect the login state from the ViewModel
-//    val isLoggedIn by loginViewModel.isLoggedIn.collectAsState()
-//
-//    NavHost(
-//        navController = navController,
-//        startDestination = if (isLoggedIn) BottomNavItem.JobOfferList.route else "login",
-//        modifier = modifier
-//    ) {
-//        // Define the composable for the login screen
-//        composable("login") {
-//            LoginScreen(
-//                loginViewModel = loginViewModel,
-//                onLoginSuccess = {
-//                    // Navigate to the jobOffer list screen on successful login
-//                    navController.navigate(BottomNavItem.JobOfferList.route) {
-//                        popUpTo("login") { inclusive = true }
-//                    }
-//                }
-//            )
-//        }
-//        // Define the composable for the jobOffer list screen
-//        composable(BottomNavItem.JobOfferList.route) {
-//            JobOfferListScreen(navController, jobOfferViewModel)
-//        }
-//        // Define the composable for the jobOffer detail screen
-////        composable(BottomNavItem.JobOfferDetail.route + "/{jobOfferId}") { backStackEntry ->
-////            val jobOfferId = backStackEntry.arguments?.getString("jobOfferId")?.toIntOrNull()
-////            jobOfferId?.let {
-////                JobOfferDetailScreen(
-////                    jobOfferId = it,
-////                    jobOfferViewModel = jobOfferViewModel,
-////                    navController = navController
-////                )
-////            }
-////        }
-//        // Define the composable for the settings screen
-//        composable(BottomNavItem.NotificationList.route) {
-//            // SettingsScreen() // Uncomment if needed
-//        }
-//        // Define the composable for the logout functionality
-////        composable(BottomNavItem.Logout.route) {
-////            loginViewModel.logout() // Call the logout function
-////            navController.navigate("login") {
-////                popUpTo(BottomNavItem.JobOfferList.route) { inclusive = true }
-////            }
-////        }
-//    }
-//}

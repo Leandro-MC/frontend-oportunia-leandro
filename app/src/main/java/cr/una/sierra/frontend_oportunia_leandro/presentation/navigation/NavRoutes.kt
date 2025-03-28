@@ -26,4 +26,8 @@ sealed class NavRoutes {
         const val ROUTE = "notifications"
     }
 
+    data object MainScreen : NavRoutes() {
+        const val ROUTE = "main_screen"
+    }
 }
+

@@ -66,6 +66,15 @@ class UserRegisterProvider {
                 lastName = "Ortiz",
                 phone = "50666554433",
                 birthday = LocalDate.of(1995, 7, 30) // 30 de agosto de 1995
+            ),
+            ApplicantRegister(
+                email = "1234",
+                password = "1234",
+                name = "Carlos",
+                profileImage = null,
+                lastName = "Ortiz",
+                phone = "50666554433",
+                birthday = LocalDate.of(1995, 7, 30) // 30 de agosto de 1995
             )
         )
 

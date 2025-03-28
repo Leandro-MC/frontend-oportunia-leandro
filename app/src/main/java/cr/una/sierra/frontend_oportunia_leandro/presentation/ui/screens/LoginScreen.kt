@@ -12,7 +12,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -26,8 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import cr.una.sierra.frontend_oportunia_leandro.presentation.navigation.NavRoutes
 import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.viewmodel.LoginState
 import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.viewmodel.LoginViewModel
 
@@ -40,8 +37,10 @@ import cr.una.sierra.frontend_oportunia_leandro.presentation.ui.viewmodel.LoginV
 
 @Composable
 fun LoginScreen(
-    navController: NavController,
-    viewModel: LoginViewModel
+    // Quitamos la dependencia directa del navController
+    viewModel: LoginViewModel,
+    onLoginSuccess: () -> Unit, // Callback para indicar que el login fue exitoso
+    onNavigateToRegistration: () -> Unit // Callback para navegar a registro
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -55,9 +54,7 @@ fun LoginScreen(
             is LoginState.Loading -> isLoading = true
             is LoginState.Success -> {
                 isLoading = false
-                navController.navigate(NavRoutes.JobOfferList.ROUTE) {
-                    popUpTo(NavRoutes.Login.ROUTE) { inclusive = true }
-                }
+                onLoginSuccess() // Se delega la navegación al callback
             }
             is LoginState.Error -> {
                 isLoading = false
@@ -66,7 +63,6 @@ fun LoginScreen(
             else -> isLoading = false
         }
     }
-
 
     Column(
         modifier = Modifier
@@ -106,9 +102,9 @@ fun LoginScreen(
             onClick = { /* Navegar a recuperar contraseña */ },
             modifier = Modifier.align(Alignment.End),
             colors = ButtonDefaults.textButtonColors(
-                contentColor = MaterialTheme.colorScheme.secondary // azul para links
+                contentColor = MaterialTheme.colorScheme.secondary
             )
-        ){
+        ) {
             Text("¿Olvidaste tu contraseña?")
         }
 
@@ -131,11 +127,11 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         TextButton(
-            onClick = { navController.navigate(NavRoutes.Registration.ROUTE) },
+            onClick = onNavigateToRegistration, // Invocamos el callback para ir a registro
             colors = ButtonDefaults.textButtonColors(
                 contentColor = MaterialTheme.colorScheme.secondary
             )
-        ){
+        ) {
             Text("¿No tienes cuenta? Registrarse")
         }
 
