@@ -1,5 +1,6 @@
 package cr.una.sierra.frontend_oportunia_leandro.presentation.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -18,6 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.painterResource
+import cr.una.sierra.frontend_oportunia_leandro.R
+//import androidx.compose.material.icons.filled.Visibility
+//import androidx.compose.material.icons.filled.VisibilityOff
 
 import cr.una.sierra.frontend_oportunia_leandro.domain.model.ApplicantRegister
 import cr.una.sierra.frontend_oportunia_leandro.domain.model.CompanyRegister
@@ -104,11 +109,35 @@ fun RegistrationScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             if (currentStep == 1) {
-                Text(
-                    text = "Registrarse",
-                    style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_oportunia), // Reemplaza con el nombre de tu icono en res/drawable
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(100.dp) // Ajusta el tamaño del icono
+                    )
+                    Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el icono y el texto
+                    Text(
+                        text = "OportunIA",
+                        style = MaterialTheme.typography.displaySmall, // Menor tamaño que "Registrarse"
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(30.dp)) // Espacio entre el logo y "Registrarse"
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Registrarse",
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -116,37 +145,10 @@ fun RegistrationScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    TextButton(
-                        onClick = { isPostulante = true },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = if (isPostulante)
-                                MaterialTheme.colorScheme.onPrimary
-                            else
-                                MaterialTheme.colorScheme.primary,
-                            containerColor = if (isPostulante)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                Color.Transparent
-                        )
-                    ) {
-                        Text("POSTULANTE")
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    TextButton(
-                        onClick = { isPostulante = false },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = if (!isPostulante)
-                                MaterialTheme.colorScheme.onPrimary
-                            else
-                                MaterialTheme.colorScheme.primary,
-                            containerColor = if (!isPostulante)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                Color.Transparent
-                        )
-                    ) {
-                        Text("EMPRESA")
-                    }
+                    SingleChoiceSegmentedButton(
+                        isPostulante = isPostulante,
+                        onSelectionChange = { isPostulante = it }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -191,7 +193,12 @@ fun RegistrationScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                UserCircleIcon()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    UserCircleIcon()
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -285,6 +292,40 @@ fun RegistrationScreen(
 /**
  * Campo reutilizable para texto y contraseñas.
  */
+//@Composable
+//fun RegistrationOutlinedTextField(
+//    label: String,
+//    value: String,
+//    onValueChange: (String) -> Unit,
+//    isPassword: Boolean = false
+//) {
+//    // Estado local para controlar la visibilidad de la contraseña
+//    var passwordVisible by remember { mutableStateOf(false) }
+//
+//    OutlinedTextField(
+//        value = value,
+//        onValueChange = onValueChange,
+//        label = { Text(label) },
+//        modifier = Modifier.fillMaxWidth(),
+//        // Si es password, se muestra o no la contraseña según el estado passwordVisible
+//        visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+//        // Si es password, se añade un ícono que permite alternar la visibilidad
+//        trailingIcon = {
+//            if (isPassword) {
+//                val image = if (passwordVisible)
+//                    Icons.Default.Visibility
+//                else Icons.Default.VisibilityOff
+//
+//                val description = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+//
+//                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+//                    Icon(imageVector = image, contentDescription = description)
+//                }
+//            }
+//        }
+//    )
+//}
+
 @Composable
 fun RegistrationOutlinedTextField(
     label: String,
@@ -309,7 +350,7 @@ fun RegistrationOutlinedTextField(
 fun UserCircleIcon() {
     Box(
         modifier = Modifier
-            .size(90.dp)
+            .size(130.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)),
         contentAlignment = Alignment.Center
@@ -318,9 +359,40 @@ fun UserCircleIcon() {
             imageVector = Icons.Default.Person,
             contentDescription = "User Icon",
             tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(70.dp)
         )
         // Aquí superponer un ícono de '+', etc.
+    }
+}
+
+
+@Composable
+fun SingleChoiceSegmentedButton(
+    isPostulante: Boolean,
+    onSelectionChange: (Boolean) -> Unit
+) {
+    val options = listOf("POSTULANTE", "EMPRESA")
+
+    SingleChoiceSegmentedButtonRow {
+        options.forEachIndexed { index, label ->
+            val selected = (index == 0 && isPostulante) || (index == 1 && !isPostulante)
+
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    count = options.size
+                ),
+                onClick = { onSelectionChange(index == 0) },
+                selected = selected,
+                colors = SegmentedButtonDefaults.colors(
+                    activeContainerColor = MaterialTheme.colorScheme.primary,
+                    activeContentColor = MaterialTheme.colorScheme.onPrimary,
+                    inactiveContainerColor = MaterialTheme.colorScheme.surface,
+                    inactiveContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                label = { Text(label) }
+            )
+        }
     }
 }
 
